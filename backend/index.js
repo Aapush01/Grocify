@@ -5,6 +5,7 @@ dotenv.config()
 import cookieParser from 'cookie-parser'
 import morgan from 'morgan'
 import helmet from 'helmet'
+import connectToDb from './db/db.js'
 
 
 const app = express();
@@ -22,6 +23,12 @@ app.use(helmet({
     crossOriginResourcePolicy: false
 }))
 
-app.listen(PORT, () =>{
-    console.log(`Server is running on ${PORT}`)
+app.get('/', (req, res) =>{
+    res.json("Bismillah hir rahman nir raheem!!!!")
+})
+
+connectToDb().then(() =>{
+    app.listen(PORT, () =>{
+        console.log(`Server is running on ${PORT}`)
+    })
 })
