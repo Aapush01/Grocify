@@ -5,7 +5,7 @@ dotenv.config()
 import cookieParser from 'cookie-parser'
 import morgan from 'morgan'
 import helmet from 'helmet'
-import connectToDb from './db/db.js'
+import connectToDb from './config/connectDB.js'
 
 
 const app = express();
