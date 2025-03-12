@@ -5,8 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-   "start": "node index.js", 
-   "dev": "nodemon index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "keywords": [],
   "author": "Aapush01",
@@ -21,6 +21,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.12.1",
     "morgan": "^1.10.0",
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "resend": "^4.1.2"
   }
 }
