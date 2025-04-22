@@ -1,7 +1,7 @@
-import UserModel from "../models/user.model";
+import UserModel from "../models/user.model.js";
 import bcrypt from "bcrypt";
-import sendEmail from "../config/sendEmail";
-import verifyEmailTemplate from "../utils/verifyEmailTemplate";
+import sendEmail from "../config/sendEmail.js";
+import verifyEmailTemplate from "../utils/verifyEmailTemplate.js";
 
 export async function registerUserController(req, res) {
   try {
