@@ -44,8 +44,8 @@ export async function registerUserController(req, res) {
       subject: "Verify email from Grocify",
       html: verifyEmailTemplate({
         name,
-        url : verifyEmailUrl,
-      })
+        url: verifyEmailUrl,
+      }),
     });
 
     return res.json({
@@ -53,6 +53,41 @@ export async function registerUserController(req, res) {
       error: false,
       success: true,
       data: save,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+export async function verifyEmailController(req, res) {
+  try {
+    const { code } = req.body;
+
+    const user = await UserModel.findOne({ _id: code });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid code",
+        error: true,
+        success: false,
+      });
+    }
+
+    const updateUser = await UserModel.updateOne(
+      { _id: code },
+      {
+        verify_email: true,
+      }
+    );
+
+    return res.json({
+      message: "Email Verified",
+      success: true,
+      error: false,
     });
   } catch (error) {
     return res.status(500).json({
