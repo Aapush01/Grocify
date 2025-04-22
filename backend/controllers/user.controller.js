@@ -44,8 +44,8 @@ export async function registerUserController(req, res) {
       subject: "Verify email from Grocify",
       html: verifyEmailTemplate({
         name,
-        verifyEmailUrl,
-      }),
+        url : verifyEmailUrl,
+      })
     });
 
     return res.json({
