@@ -4,6 +4,7 @@ import sendEmail from "../config/sendEmail.js";
 import verifyEmailTemplate from "../utils/verifyEmailTemplate.js";
 import generatedAccessToken from "../utils/generatedAccessToken.js";
 import genertedRefreshToken from "../utils/genertedRefreshToken.js";
+import uploadImageCloudinary from "../utils/uploadImageCloudinary.js";
 
 export async function registerUserController(req, res) {
   try {
@@ -103,105 +104,133 @@ export async function verifyEmailController(req, res) {
 export async function loginController(req, res) {
   try {
     const { email, password } = req.body;
-    
-    if( !email || !password ) {
+
+    if (!email || !password) {
       return res.status(400).json({
         message: "Provide email, password",
-        error: true, 
+        error: true,
         success: false,
-      })
+      });
     }
 
     const user = await UserModel.findOne({ email });
 
-    if(!user) {
+    if (!user) {
       return res.status(400).json({
-        message: "User not registered", 
-        error: true, 
+        message: "User not registered",
+        error: true,
         success: false,
-      })
+      });
     }
 
-    if(user.status !== "Active") {
+    if (user.status !== "Active") {
       return res.status(400).json({
-        message: "Contact to Admin", 
-        error: true, 
+        message: "Contact to Admin",
+        error: true,
         success: false,
-      })
+      });
     }
 
     const checkPassword = await bcrypt.compare(password, user.password);
 
-    if(!checkPassword) {
+    if (!checkPassword) {
       return res.status(400).json({
-        message: "Check your password", 
+        message: "Check your password",
         error: true,
         success: false,
-      })
+      });
     }
 
     const accessToken = await generatedAccessToken(user._id);
     const refreshToken = await genertedRefreshToken(user._id);
 
     const updateUser = await UserModel.findByIdAndUpdate(user?._id, {
-      last_login_date : new Date()
-    })
+      last_login_date: new Date(),
+    });
 
-    const cookiesOption = {
-      httpOnly: true, 
-      secure: true, 
-      sameSite: "None",
-    }
-
-    res.cookie('accessToken', accessToken, cookiesOption);
-    res.cookie('refreshToken', refreshToken, cookiesOption);
-
-    return res.json({
-      message: "Login successfully", 
-      error: false, 
-      success: true, 
-      data: {
-        accessToken,
-        refreshToken
-      }
-    })
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message || error,
-      error: true, 
-      success: false
-    })
-  }
-} 
-
-export async function logoutController(req, res) {
-  try {
-
-    const userid = req.userId //middlware
-    
     const cookiesOption = {
       httpOnly: true,
       secure: true,
-      sameSite: "None"
-    }
+      sameSite: "None",
+    };
 
-    res.clearCookie("accessToken", cookiesOption)
-    res.clearCookie("refreshToken", cookiesOption)
+    res.cookie("accessToken", accessToken, cookiesOption);
+    res.cookie("refreshToken", refreshToken, cookiesOption);
 
-    const removeRefreshToken = await UserModel.findByIdAndUpdate(userid, {
-      refresh_token : ""
-    })
-    
     return res.json({
-      message: "Successfully logged out.",
+      message: "Login successfully",
       error: false,
-      success: true
-    })
+      success: true,
+      data: {
+        accessToken,
+        refreshToken,
+      },
+    });
   } catch (error) {
     return res.status(500).json({
       message: error.message || error,
-      error: true, 
-      seccuss: false
-    })
+      error: true,
+      success: false,
+    });
+  }
+}
+
+export async function logoutController(req, res) {
+  try {
+    const userid = req.userId; //middlware
+
+    const cookiesOption = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    };
+
+    res.clearCookie("accessToken", cookiesOption);
+    res.clearCookie("refreshToken", cookiesOption);
+
+    const removeRefreshToken = await UserModel.findByIdAndUpdate(userid, {
+      refresh_token: "",
+    });
+
+    return res.json({
+      message: "Successfully logged out.",
+      error: false,
+      success: true,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      error: true,
+      seccuss: false,
+    });
+  }
+}
+
+export async function uploadAvatar(req, res) {
+  try {
+    const userId = req.userId; //auth middleware
+    const image = req.file; //multer middleware
+
+    const upload = await uploadImageCloudinary(image);
+
+    const updateUser = await UserModel.findByIdAndUpdate(userId, {
+      avatar: upload.url,
+    });
+
+    return res.json({
+      message: "uploaded profile avatar",
+      success: true,
+      error: false,
+      data: {
+        _id: userId,
+        avatar: upload.url,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
   }
 }
