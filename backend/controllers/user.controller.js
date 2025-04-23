@@ -161,7 +161,7 @@ export async function loginController(req, res) {
       error: false, 
       success: true, 
       data: {
-        accessToken, 
+        accessToken,
         refreshToken
       }
     })
