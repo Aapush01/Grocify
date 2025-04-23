@@ -173,3 +173,35 @@ export async function loginController(req, res) {
     })
   }
 } 
+
+export async function logoutController(req, res) {
+  try {
+
+    const userid = req.userId //middlware
+    
+    const cookiesOption = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None"
+    }
+
+    res.clearCookie("accessToken", cookiesOption)
+    res.clearCookie("refreshToken", cookiesOption)
+
+    const removeRefreshToken = await UserModel.findByIdAndUpdate(userid, {
+      refresh_token : ""
+    })
+    
+    return res.json({
+      message: "Successfully logged out.",
+      error: false,
+      success: true
+    })
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      error: true, 
+      seccuss: false
+    })
+  }
+}
