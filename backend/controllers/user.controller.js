@@ -5,6 +5,8 @@ import verifyEmailTemplate from "../utils/verifyEmailTemplate.js";
 import generatedAccessToken from "../utils/generatedAccessToken.js";
 import genertedRefreshToken from "../utils/genertedRefreshToken.js";
 import uploadImageCloudinary from "../utils/uploadImageCloudinary.js";
+import generateOtp from "../utils/generateOtp.js";
+import forgotPasswordTemplate from "../utils/forgotPasswordTemplate.js";
 
 export async function registerUserController(req, res) {
   try {
@@ -242,30 +244,79 @@ export async function updateUserDetails(req, res) {
 
     let hashPassword = "";
 
-    if( password ) {
+    if (password) {
       const salt = await bcrypt.genSalt(10);
       hashPassword = await bcrypt.hash(password, salt);
     }
 
-    const updateUser = await UserModel.updateOne({ _id : userId }, {
-      ...(name && { name : name }), //I'm using spread operator here
-      ...(email && { email : email }),
-      ...(mobile && { mobile : mobile }),
-      ...(password && { password : hashPassword })
-    })
+    const updateUser = await UserModel.updateOne(
+      { _id: userId },
+      {
+        ...(name && { name: name }), //I'm using spread operator here
+        ...(email && { email: email }),
+        ...(mobile && { mobile: mobile }),
+        ...(password && { password: hashPassword }),
+      }
+    );
 
     return res.json({
       message: "Updated successfully",
       error: false,
       success: true,
-      data: updateUser
-    })
-
+      data: updateUser,
+    });
   } catch (error) {
     return res.status(500).json({
       message: error.message || error,
       error: true,
-      success: false
-    })
+      success: false,
+    });
   }
 }
+
+export async function forgotPasswordController(req, res) {
+  try {
+    const { email } = req.body;
+
+    const user = await UserModel.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "This email is not registered.",
+        error: true,
+        success: false,
+      });
+    }
+
+    const otp = generateOtp();
+    const expireTime = new Date(Date.now() + 60 * 60 * 1000); // 1hr
+
+    const update = await UserModel.findByIdAndUpdate(user._id, {
+      forgot_password_otp: otp,
+      forgot_password_expiry: new Date(expireTime).toISOString(),
+    });
+
+    await sendEmail({
+      sendTo: email,
+      subject: "Forgot password from Grocify",
+      html: forgotPasswordTemplate({
+        name: user.name,
+        otp: otp,
+      }),
+    });
+
+    return res.json({
+      message: "Please check your email.",
+      error: false,
+      success: true,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+
