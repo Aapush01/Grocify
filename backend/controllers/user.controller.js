@@ -234,3 +234,38 @@ export async function uploadAvatar(req, res) {
     });
   }
 }
+
+export async function updateUserDetails(req, res) {
+  try {
+    const userId = req.userId; //auth middleware
+    const { name, email, mobile, password } = req.body;
+
+    let hashPassword = "";
+
+    if( password ) {
+      const salt = await bcrypt.genSalt(10);
+      hashPassword = await bcrypt.hash(password, salt);
+    }
+
+    const updateUser = await UserModel.updateOne({ _id : userId }, {
+      ...(name && { name : name }), //I'm using spread operator here
+      ...(email && { email : email }),
+      ...(mobile && { mobile : mobile }),
+      ...(password && { password : hashPassword })
+    })
+
+    return res.json({
+      message: "Updated successfully",
+      error: false,
+      success: true,
+      data: updateUser
+    })
+
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false
+    })
+  }
+}
